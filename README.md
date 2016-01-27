@@ -1,5 +1,5 @@
 # Channel Performance
 
 ```bash
-$ ./run.sh
+$ DATA_FILE=/tmp/sbp.bin ./run.sh
 ```

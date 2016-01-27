@@ -2,6 +2,11 @@
 
 set -e
 
+if [ -z "$DATA_FILE"]; then
+    echo "No DATA_FILE variable"
+    exit 1
+fi
+
 stack install --executable-profiling --library-profiling
 
 for n in 0 1 2 3 4 5

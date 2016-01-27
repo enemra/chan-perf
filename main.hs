@@ -1,4 +1,5 @@
 import           BasicPrelude
+import           Control.Concurrent
 import           Control.Concurrent.Async
 import           Control.Concurrent.STM
 import           Control.Monad.Trans.Resource
@@ -51,8 +52,9 @@ main3 = do
         conduitDecode      =$=
         CL.map touch       $$
         sinkTMChan chan True )
-    ( sourceTMChan chanDup $$
-        CL.sinkNull )
+    ( runResourceT $
+        sourceTMChan chanDup $$
+          CL.sinkNull )
 
 main4 :: IO ()
 main4 = do
@@ -65,8 +67,9 @@ main4 = do
         CL.map touch       =$=
         conduitEncode      $$
         sinkTMChan chan True )
-    ( sourceTMChan chanDup $$
-        CL.sinkNull )
+    ( runResourceT $
+        sourceTMChan chanDup $$
+          CL.sinkNull )
 
 main5 :: IO ()
 main5 = do
@@ -78,9 +81,42 @@ main5 = do
         conduitDecode      =$=
         CL.map touch       $$
         sinkTMChan chan True )
-    ( sourceTMChan chanDup =$=
-        conduitEncode      $$
-        CL.sinkNull )
+    ( runResourceT $
+        sourceTMChan chanDup =$=
+          conduitEncode      $$
+          CL.sinkNull )
+
+main6 :: IO ()
+main6 = do
+  chan    <- atomically $ newBroadcastTMChan
+  chanDup <- atomically $ dupTMChan chan
+  void $ concurrently
+    ( runResourceT $
+        sourceHandle stdin $$
+        sinkTMChan chan True )
+    ( runResourceT $
+        sourceTMChan chanDup $$
+          CL.sinkNull )
+
+sleeper :: SBPMsg -> ResourceT IO SBPMsg
+sleeper m = do
+  liftIO $ threadDelay 1
+  return m
+
+main7 :: IO ()
+main7 = do
+  chan    <- atomically $ newBroadcastTMChan
+  chanDup <- atomically $ dupTMChan chan
+  void $ concurrently
+    ( runResourceT $
+        sourceHandle stdin =$=
+        conduitDecode      =$=
+        CL.map touch       =$=
+        CL.mapM sleeper    $$
+        sinkTMChan chan True )
+    ( runResourceT $
+        sourceTMChan chanDup $$
+          CL.sinkNull )
 
 main :: IO ()
 main = do
@@ -91,4 +127,6 @@ main = do
     "3" -> main3
     "4" -> main4
     "5" -> main5
+    "6" -> main6
+    "7" -> main7
     _   -> main0

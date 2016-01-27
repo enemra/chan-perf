@@ -2,6 +2,10 @@
 *.hi
 *.chi
 *.chs.h
+*.ps
+*.aux
+*.hp
+*.prof
 *~
 *.*~
 .hsenv

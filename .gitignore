@@ -1,0 +1,11 @@
+*.o
+*.hi
+*.chi
+*.chs.h
+*~
+*.*~
+.hsenv
+.stack-work/
+*.sample
+dist
+/skylark-core
